@@ -68,6 +68,16 @@ app.MapPut("/api/todos/{id}", (int id, TodoUpdateDto dto) =>
 
 });
 
+// Delete Todo
+app.MapDelete("api/todos/{id}", (int id) =>
+{
+    var todo = todos.FirstOrDefault(x => x.Id == id);
+    if(todo is null) return Results.NotFound("Todo not found");
+
+    todos.Remove(todo);
+    return Results.NoContent();
+});
+
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
