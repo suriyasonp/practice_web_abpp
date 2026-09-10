@@ -55,7 +55,9 @@ app.UseAuthorization();
 app.MapGet("/", () => "Hello Todo API");
 
 // Map Group
-var todoGroup = app.MapGroup("/api/todos").WithTags("Todos");
+var todoGroup = app.MapGroup("/api/todos")
+                    .WithTags("Todos")
+                    .RequireAuthorization();
 
 #region Todo Endpoints InMemory
 // // Get All Endpoint
@@ -179,6 +181,40 @@ todoGroup.MapDelete("/{id}", async (int id, AppDbContext db) =>
     db.Todos.Remove(todo);
     await db.SaveChangesAsync();
     return Results.NoContent();
+});
+
+#endregion
+
+#region Login Endpoint
+
+app.MapPost("/api/auth/login", (
+    LoginDto login,
+    IConfiguration configuration) =>
+{
+    if (login.Username != "student" || login.Password != "password")
+        return Results.Unauthorized();
+
+    var claims = new[]
+    {
+        new Claim(ClaimTypes.Name, login.Username)
+    };
+
+    var key = new SymmetricSecurityKey(
+        Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
+
+    var credentials = new SigningCredentials(
+        key,
+        SecurityAlgorithms.HmacSha256);
+
+    var token = new JwtSecurityToken(
+        issuer: configuration["Jwt:Issuer"],
+        audience: configuration["Jwt:Audience"],
+        claims: claims,
+        expires: DateTime.UtcNow.AddHours(1),
+        signingCredentials: credentials);
+
+    var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+    return Results.Ok(new LoginResponseDto(tokenString));
 });
 
 #endregion
