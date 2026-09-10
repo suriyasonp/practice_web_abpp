@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Scalar.AspNetCore;
 
 using TodoApi.Dtos;
 using TodoApi.Data;
@@ -50,6 +51,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapOpenApi();
+app.MapScalarApiReference();
 
 // Root Endpoint
 app.MapGet("/", () => "Hello Todo API");
@@ -131,7 +134,11 @@ todoGroup.MapGet("/", async (AppDbContext db) =>
         .ToListAsync();
 
     return Results.Ok(todos);
-});
+}).WithName("GetAllTodos")
+.WithSummary("Get all todo items")
+.WithDescription("Returns a list of all todo items in the database.")
+.Produces<List<TodoGetDto>>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status401Unauthorized);
 
 todoGroup.MapGet("/{id}", async (int id, AppDbContext db) =>
 {
