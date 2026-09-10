@@ -46,13 +46,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapOpenApi();
-app.MapScalarApiReference();
 
 // Root Endpoint
 app.MapGet("/", () => "Hello Todo API");
