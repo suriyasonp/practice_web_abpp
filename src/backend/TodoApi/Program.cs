@@ -39,6 +39,35 @@ app.MapGet("/api/todos/{id}", (int id) =>
         : Results.Ok(todo);
 });
 
+// Create Todo
+app.MapPost("/api/todos", (TodoCreateDto dto) =>
+{
+    var nextId = todos.Count == 0 ? 1 : todos.Max(x => x.Id) + 1;
+    // prepare values to return as Get Dto.
+    var todo = new TodoGetDto(nextId, dto.Title, false);
+    todos.Add(todo);
+
+    return Results.Created($"/api/todos/{todo.Id}", todo);
+});
+
+// Update Todo
+app.MapPut("/api/todos/{id}", (int id, TodoUpdateDto dto) =>
+{
+    // Find the index of the todo item with the specified ID
+    var index = todos.FindIndex(x => x.Id == id);
+
+    if (index == -1) return Results.NotFound("Todo not found");
+
+    todos[index] = todos[index] with
+    {
+        Title = dto.Title,
+        IsCompleted = dto.IsCompleted
+    };
+
+    return Results.Ok(todos[index]);
+
+});
+
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
