@@ -1,3 +1,5 @@
+using TodoApi.Dtos;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -14,26 +16,28 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("/", () => "Hello World!");
+// Root Endpoint
+app.MapGet("/", () => "Hello Todo API");
 
-var summaries = new[]
+// Get All Endpoint
+var todos = new List<TodoGetDto>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+    new(1, "Learn ASP.NET Core", true),
+    new(2, "Build a web API", false),
+    new(3, "Write unit tests", false)
 };
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/api/todos", () => Results.Ok(todos));
+
+// Filter todo by ID
+app.MapGet("/api/todos/{id}", (int id) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    var todo = todos.FirstOrDefault(x => x.Id == id);
+
+    return todo is null
+        ? Results.NotFound("Todo not found")
+        : Results.Ok(todo);
+});
 
 app.Run();
 
