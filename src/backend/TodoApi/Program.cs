@@ -19,6 +19,10 @@ app.UseHttpsRedirection();
 // Root Endpoint
 app.MapGet("/", () => "Hello Todo API");
 
+// Map Group
+var todoGroup = app.MapGroup("/api/todos").WithTags("Todos");
+
+
 // Get All Endpoint
 var todos = new List<TodoGetDto>
 {
@@ -27,10 +31,10 @@ var todos = new List<TodoGetDto>
     new(3, "Write unit tests", false)
 };
 
-app.MapGet("/api/todos", () => Results.Ok(todos));
+todoGroup.MapGet("/", () => Results.Ok(todos));
 
 // Filter todo by ID
-app.MapGet("/api/todos/{id}", (int id) =>
+todoGroup.MapGet("/{id}", (int id) =>
 {
     var todo = todos.FirstOrDefault(x => x.Id == id);
 
@@ -40,7 +44,7 @@ app.MapGet("/api/todos/{id}", (int id) =>
 });
 
 // Create Todo
-app.MapPost("/api/todos", (TodoCreateDto dto) =>
+todoGroup.MapPost("/", (TodoCreateDto dto) =>
 {
     var nextId = todos.Count == 0 ? 1 : todos.Max(x => x.Id) + 1;
     // prepare values to return as Get Dto.
@@ -51,7 +55,7 @@ app.MapPost("/api/todos", (TodoCreateDto dto) =>
 });
 
 // Update Todo
-app.MapPut("/api/todos/{id}", (int id, TodoUpdateDto dto) =>
+todoGroup.MapPut("/{id}", (int id, TodoUpdateDto dto) =>
 {
     // Find the index of the todo item with the specified ID
     var index = todos.FindIndex(x => x.Id == id);
@@ -69,7 +73,7 @@ app.MapPut("/api/todos/{id}", (int id, TodoUpdateDto dto) =>
 });
 
 // Delete Todo
-app.MapDelete("api/todos/{id}", (int id) =>
+todoGroup.MapDelete("/{id}", (int id) =>
 {
     var todo = todos.FirstOrDefault(x => x.Id == id);
     if(todo is null) return Results.NotFound("Todo not found");
@@ -79,8 +83,3 @@ app.MapDelete("api/todos/{id}", (int id) =>
 });
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
